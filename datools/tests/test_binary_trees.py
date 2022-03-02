@@ -50,6 +50,24 @@ class Test_Tree(unittest.TestCase):
         self.assertEqual(l_grandchild.left_child, None)
         self.assertEqual(l_grandchild.right_child, None)
 
+    def test_parent(self):
+        tree = Binary_Tree()
+
+        root = Binary_Tree_Node()
+        l_child = Binary_Tree_Node()
+        r_child = Binary_Tree_Node()
+        l_grandchild = Binary_Tree_Node()
+
+        tree.add_node(root)
+        tree.add_node(l_child, parent=root, left_side=True)
+        tree.add_node(r_child, parent=root, left_side=False)
+        tree.add_node(l_grandchild, parent=l_child, left_side=True)
+
+        self.assertEqual(list(root.ancestors), [])
+        self.assertEqual(list(l_child.ancestors), [root])
+        self.assertEqual(list(r_child.ancestors), [root])
+        self.assertEqual(list(l_grandchild.ancestors), [l_child, root])
+
     def test_death_existing_node(self):
         tree = Binary_Tree()
 
