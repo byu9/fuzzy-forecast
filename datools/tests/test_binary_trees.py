@@ -4,7 +4,7 @@ Unit tests for trees
 
 
 import unittest
-from datools.collections.binary_trees import Binary_Tree, Binary_Tree_Node
+from datools.containers.binary_trees import Binary_Tree, Binary_Tree_Node
 
 class Test_Tree(unittest.TestCase):
 
