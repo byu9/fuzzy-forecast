@@ -10,12 +10,12 @@ class Binary_Tree_Node:
         '_l_child',
         '_r_child'
     )
-    
+
     def __init__(self):
         self._parent = None
         self._l_child = None
         self._r_child = None
-    
+
     @property
     def parent(self):
         return self._parent
@@ -23,7 +23,7 @@ class Binary_Tree_Node:
     @property
     def left_child(self):
         return self._l_child
-    
+
     @property
     def right_child(self):
         return self._r_child
@@ -42,11 +42,11 @@ class Binary_Tree:
         self._root = None
         self._leaves = list()
         self._nodes = list()
-        
+
     @property
     def leaves(self):
         yield from self._leaves
-    
+
     @property
     def root(self):
         return self._root
@@ -71,10 +71,10 @@ class Binary_Tree:
         else:
             assert parent is not None, "missing parent"
             assert parent in self._nodes, "unrecognized parent"
-            
+
             if parent in self._leaves:
                 self._leaves.remove(parent)
-                
+
             if left_side:
                 assert parent._l_child is None, "existing l_child"
                 parent._l_child = node
