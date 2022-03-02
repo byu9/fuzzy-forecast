@@ -21,10 +21,10 @@ class Test_Tree(unittest.TestCase):
         tree.add_node(r_child, parent=root, left_side=False)
         tree.add_node(l_grandchild, parent=l_child, left_side=True)
 
-        self.assertIn(root, tree.nodes)
-        self.assertIn(l_child, tree.nodes)
-        self.assertIn(r_child, tree.nodes)
-        self.assertIn(l_grandchild, tree.nodes)
+        self.assertTrue(root in tree)
+        self.assertTrue(l_child in tree)
+        self.assertTrue(r_child in tree)
+        self.assertTrue(l_grandchild in tree)
 
         self.assertNotIn(root, tree.leaves)
         self.assertNotIn(l_child, tree.leaves)
