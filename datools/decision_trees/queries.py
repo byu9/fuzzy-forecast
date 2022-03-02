@@ -3,10 +3,11 @@ Query classes
 '''
 
 
+import numpy
+
 from abc import ABCMeta, abstractmethod
 from functools import singledispatch
-import numpy
-from ..fuzzy_systems.memberships import *
+from ..fuzzy_systems.memberships import Sigmoid
 
 
 __all__ = [
@@ -16,7 +17,19 @@ __all__ = [
 ]
 
 
-class Abstract_Query(metaclass=ABCMeta):
+class Abstract_Binary_Query(metaclass=ABCMeta):
+    __slots__ = (
+        'col_index',
+        'feature_name',
+    )
+
+    def __init__(self, col_index, feature_name=None):
+        self.col_index = col_index
+        self.feature_name = (
+            feature_name if feature_name is not None else
+            f'column[{col_index}]'
+        )
+
     @abstractmethod
     def degree_of_truth(self, features):
         raise NotImplementedError()
@@ -26,55 +39,61 @@ class Abstract_Query(metaclass=ABCMeta):
 
 
 
-class Crisp_Threshold_Query(Abstract_Query):
+class Crisp_Threshold_Query(Abstract_Binary_Query):
     __slots__ = (
-        'feature_of_interest',
         'threshold',
     )
 
-    def __init__(self, threshold, feature_of_interest):
+    def __init__(self, col_index, threshold=0.0, feature_name=None):
+        super().__init__(col_index, feature_name)
         self.threshold = threshold
-        self.feature_of_interest = feature_of_interest
 
     def degree_of_truth(self, features):
-        value_under_query = features[self.feature_of_interest]
+        features = numpy.asarray(features)
+        assert features.ndim == 2
 
-        return (
-            1 if value_under_query > self.threshold
-            else 0
-        )
+        values_under_query = features[:, self.col_index]
+
+        return values_under_query > self.threshold
 
     def __repr__(self):
-        feature = self.feature_of_interest
+        feature = self.feature_name
         threshold = self.threshold
-        return f'{{Is X[{feature}] > {threshold}?}}'
+        return f'{{Is {feature} > {threshold}?}}'
 
 
 
-class Fuzzy_Threshold_Query(Abstract_Query):
+class Fuzzy_Threshold_Query(Abstract_Binary_Query):
     __slots__ = (
-        'feature_of_interest',
         'threshold',
-        'fuzziness_coef',
+        'gain',
         'membership_func',
     )
 
-    def __init__(self, membership_func=Sigmoid, fuzziness_coef=numpy.inf):
+    def __init__(self, col_index, feature_name=None, threshold=0.0,
+                 membership_func=Sigmoid(), gain=1.0):
+
+        super().__init__(col_index, feature_name)
+        self.threshold = threshold
+        self.gain = gain
         self.membership_func = membership_func
-        self.fuzziness_coef = fuzziness_coef
 
     def degree_of_truth(self, features):
-        value_under_query = features[self.feature_of_interest]
+        features = numpy.asarray(features)
+        assert features.ndim == 2
 
-        activation = self.fuzziness_coef * (
-            value_under_query - self.threshold)
+        values_under_query = features[:, self.col_index]
+
+        activation = self.gain * (
+            values_under_query - self.threshold)
 
         return self.membership_func.primitive(activation)
 
     def __repr__(self):
-        feature = self.feature_of_interest
+        feature = self.feature_name
         threshold = self.threshold
-        return f'{{Is X[{feature}] roughly > {threshold}?}}'
+        gain = self.gain
+        return f'{{Is {feature} roughly > {threshold} with gain {gain}?}}'
 
 
 @singledispatch
@@ -85,9 +104,10 @@ def fuzzify(crisp, *args, **kwargs):
 @fuzzify.register
 def _(crisp : Crisp_Threshold_Query, *args, **kwargs):
 
-    fuzzified = Fuzzy_Threshold_Query(*args, **kwargs)
+    kwargs['feature_name'] = crisp.feature_name
+    kwargs['threshold'] = crisp.threshold
+    kwargs['col_index'] = crisp.col_index
 
-    fuzzified.feature_of_interest = crisp.feature_of_interest
-    fuzzified.threshold = crisp.threshold
+    fuzzified = Fuzzy_Threshold_Query(*args, **kwargs)
 
     return fuzzified
