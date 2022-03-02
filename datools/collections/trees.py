@@ -41,6 +41,7 @@ class Tree:
 
         else:
             assert parent is not None, "missing parent"
+            assert parent in self._nodes, "unrecognized parent"
 
             self._leaves.remove(parent)
             if left_side:
