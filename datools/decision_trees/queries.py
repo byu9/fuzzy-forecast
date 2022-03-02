@@ -67,7 +67,7 @@ class Fuzzy_Threshold_Query(Abstract_Query):
         value_under_query = features[self.feature_of_interest]
 
         activation = self.fuzziness_coef * (
-            value_under_query + self.threshold)
+            value_under_query - self.threshold)
 
         return self.membership_func.primitive(activation)
 
