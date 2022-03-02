@@ -68,6 +68,15 @@ class Test_Tree(unittest.TestCase):
         self.assertEqual(list(r_child.ancestors), [root])
         self.assertEqual(list(l_grandchild.ancestors), [l_child, root])
 
+    def test_traverse_empty(self):
+        '''
+        Traversals of empty tree should not raise any exceptions
+        '''
+        tree = Binary_Tree()
+
+        for _ in tree.topological_ordering():
+            pass
+
 
     def test_topological_ordering(self):
         tree = Binary_Tree()
