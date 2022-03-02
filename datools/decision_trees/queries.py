@@ -34,10 +34,6 @@ class Abstract_Binary_Query(metaclass=ABCMeta):
     def degree_of_truth(self, features):
         raise NotImplementedError()
 
-    def degree_of_false(self, features):
-        return 1 - self.degree_of_truth(features)
-
-
 
 class Crisp_Threshold_Query(Abstract_Binary_Query):
     __slots__ = (
