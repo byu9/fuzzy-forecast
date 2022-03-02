@@ -21,6 +21,17 @@ class Binary_Tree_Node:
         return self._parent
 
     @property
+    def ancestors(self):
+        '''
+        ancestors from the direct parent to the root node
+        '''
+        p = self._parent
+
+        while p is not None:
+            yield p
+            p = p.parent
+
+    @property
     def left_child(self):
         return self._l_child
 
