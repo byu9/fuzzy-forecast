@@ -67,6 +67,10 @@ class Binary_Tree:
     def __contains__(self, node):
         return node in self._nodes
 
+    @property
+    def nodes(self):
+        return self._nodes
+
     def topological_ordering(self):
         '''
         Perform a level-order traversal (root, left, right ...)
