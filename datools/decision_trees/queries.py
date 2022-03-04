@@ -133,6 +133,7 @@ def _(crisp : Crisp_Threshold_Query, *args, **kwargs):
     kwargs['feature_name'] = crisp.feature_name
     kwargs['threshold'] = crisp.threshold
     kwargs['col_index'] = crisp.col_index
+    kwargs['side'] = crisp.side
 
     fuzzified = Fuzzy_Threshold_Query(*args, **kwargs)
 
