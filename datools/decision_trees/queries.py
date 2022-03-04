@@ -4,7 +4,7 @@ Query classes
 
 
 import numpy
-
+import operator
 from abc import ABCMeta, abstractmethod
 from functools import singledispatch
 from ..fuzzy_systems.memberships import Sigmoid
@@ -15,6 +15,14 @@ __all__ = [
     'Crisp_Threshold_Query',
     'Fuzzy_Threshold_Query'
 ]
+
+
+_operators = {
+    '>' : operator.gt,
+    '>=': operator.ge,
+    '<' : operator.lt,
+    '<=': operator.le,
+}
 
 
 class Abstract_Binary_Query(metaclass=ABCMeta):
@@ -38,11 +46,18 @@ class Abstract_Binary_Query(metaclass=ABCMeta):
 class Crisp_Threshold_Query(Abstract_Binary_Query):
     __slots__ = (
         'threshold',
+        '_operator',
+        '_operator_name'
     )
 
-    def __init__(self, col_index, threshold=0.0, feature_name=None):
+    def __init__(self, col_index, threshold=0.0, feature_name=None,
+                 side='>='):
+
         super().__init__(col_index, feature_name)
+
         self.threshold = threshold
+        self._operator_name = side
+        self._operator = _operators[side]
 
     def degree_of_truth(self, features):
         features = numpy.asarray(features)
@@ -50,12 +65,13 @@ class Crisp_Threshold_Query(Abstract_Binary_Query):
 
         values_under_query = features[:, self.col_index]
 
-        return values_under_query > self.threshold
+        return self._operator(values_under_query, self.threshold)
 
     def __repr__(self):
         feature = self.feature_name
         threshold = self.threshold
-        return f'{{Is {feature} > {threshold}?}}'
+        operator = self._operator_name
+        return f'{{Is {feature} {operator} {threshold}?}}'
 
 
 
@@ -64,15 +80,18 @@ class Fuzzy_Threshold_Query(Abstract_Binary_Query):
         'threshold',
         'gain',
         'membership_func',
+        '_operator_name',
     )
 
     def __init__(self, col_index, feature_name=None, threshold=0.0,
-                 membership_func=Sigmoid(), gain=1.0):
+                 membership_func=Sigmoid(), gain=1.0, side='>='):
 
         super().__init__(col_index, feature_name)
+        assert gain > 0
         self.threshold = threshold
         self.gain = gain
         self.membership_func = membership_func
+        self._operator_name = side
 
     def degree_of_truth(self, features):
         features = numpy.asarray(features)
@@ -80,7 +99,14 @@ class Fuzzy_Threshold_Query(Abstract_Binary_Query):
 
         values_under_query = features[:, self.col_index]
 
-        activation = self.gain * (
+        sign = {
+            '>=' :  1,
+            '>'  :  1,
+            '<=' : -1,
+            '<'  : -1
+        }[self._operator_name]
+
+        activation = sign * self.gain * (
             values_under_query - self.threshold)
 
         return self.membership_func.primitive(activation)
@@ -89,7 +115,11 @@ class Fuzzy_Threshold_Query(Abstract_Binary_Query):
         feature = self.feature_name
         threshold = self.threshold
         gain = self.gain
-        return f'{{Is {feature} roughly > {threshold} with gain {gain}?}}'
+        operator = self._operator_name
+        return (
+            f'{{Is {feature} roughly {operator} {threshold} '
+            f'with gain {gain}?}}'
+        )
 
 
 @singledispatch
