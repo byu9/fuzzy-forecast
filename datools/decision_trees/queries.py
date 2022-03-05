@@ -4,7 +4,6 @@ Query classes
 
 
 import numpy
-import operator
 from abc import ABCMeta, abstractmethod
 from functools import singledispatch
 from ..fuzzy_systems.memberships import Sigmoid
@@ -16,13 +15,6 @@ __all__ = [
     'Fuzzy_Threshold_Query'
 ]
 
-
-_operators = {
-    '>' : operator.gt,
-    '>=': operator.ge,
-    '<' : operator.lt,
-    '<=': operator.le,
-}
 
 
 class Abstract_Binary_Query(metaclass=ABCMeta):
@@ -46,18 +38,25 @@ class Abstract_Binary_Query(metaclass=ABCMeta):
 class Crisp_Threshold_Query(Abstract_Binary_Query):
     __slots__ = (
         'threshold',
-        '_operator',
-        '_operator_name'
+        '_operator_func',
+        'operator'
     )
 
     def __init__(self, col_index, threshold=0.0, feature_name=None,
-                 side='>='):
+                 operator='>='):
+
+        import operator as operatorlib
 
         super().__init__(col_index, feature_name)
 
         self.threshold = threshold
-        self._operator_name = side
-        self._operator = _operators[side]
+        self.operator = operator
+        self._operator_func = {
+            '>' : operatorlib.gt,
+            '>=': operatorlib.ge,
+            '<' : operatorlib.lt,
+            '<=': operatorlib.le,
+        }[operator]
 
     def degree_of_truth(self, features):
         features = numpy.asarray(features)
@@ -65,12 +64,12 @@ class Crisp_Threshold_Query(Abstract_Binary_Query):
 
         values_under_query = features[:, self.col_index]
 
-        return self._operator(values_under_query, self.threshold)
+        return self._operator_func(values_under_query, self.threshold)
 
     def __repr__(self):
         feature = self.feature_name
         threshold = self.threshold
-        operator = self._operator_name
+        operator = self.operator
         return f'{{Is {feature} {operator} {threshold}?}}'
 
 
@@ -80,18 +79,25 @@ class Fuzzy_Threshold_Query(Abstract_Binary_Query):
         'threshold',
         'gain',
         'membership_func',
-        '_operator_name',
+        'operator',
+        '_sign',
     )
 
     def __init__(self, col_index, feature_name=None, threshold=0.0,
-                 membership_func=Sigmoid(), gain=1.0, side='>='):
+                 membership_func=Sigmoid(), gain=1.0, operator='>='):
 
         super().__init__(col_index, feature_name)
         assert gain > 0
         self.threshold = threshold
         self.gain = gain
         self.membership_func = membership_func
-        self._operator_name = side
+        self.operator = operator
+        self._sign = {
+            '>=' :  1,
+            '>'  :  1,
+            '<=' : -1,
+            '<'  : -1
+        }[operator]
 
     def degree_of_truth(self, features):
         features = numpy.asarray(features)
@@ -99,14 +105,7 @@ class Fuzzy_Threshold_Query(Abstract_Binary_Query):
 
         values_under_query = features[:, self.col_index]
 
-        sign = {
-            '>=' :  1,
-            '>'  :  1,
-            '<=' : -1,
-            '<'  : -1
-        }[self._operator_name]
-
-        activation = sign * self.gain * (
+        activation = self._sign * self.gain * (
             values_under_query - self.threshold)
 
         return self.membership_func.primitive(activation)
@@ -115,7 +114,7 @@ class Fuzzy_Threshold_Query(Abstract_Binary_Query):
         feature = self.feature_name
         threshold = self.threshold
         gain = self.gain
-        operator = self._operator_name
+        operator = self.operator
         return (
             f'{{Is {feature} roughly {operator} {threshold} '
             f'with gain {gain}?}}'
@@ -133,7 +132,7 @@ def _(crisp : Crisp_Threshold_Query, *args, **kwargs):
     kwargs['feature_name'] = crisp.feature_name
     kwargs['threshold'] = crisp.threshold
     kwargs['col_index'] = crisp.col_index
-    kwargs['side'] = crisp.side
+    kwargs['operator'] = crisp.operator
 
     fuzzified = Fuzzy_Threshold_Query(*args, **kwargs)
 

@@ -23,7 +23,7 @@ class Test_Crisp_Threshold_Query(unittest.TestCase):
 
         query = Crisp_Threshold_Query(threshold=0.6,
                                       col_index=-2,
-                                      side='>')
+                                      operator='>')
 
         test_keys = [0, 1, 0]
         test_outputs = query.degree_of_truth(features)
@@ -57,7 +57,7 @@ class Test_Fuzzify(unittest.TestCase):
     def test_case1(self):
         crisp = Crisp_Threshold_Query(threshold=0.6,
                                       col_index=-2,
-                                      side='>')
+                                      operator='>')
 
         fuzzy = fuzzify(crisp, gain=0.3)
 
