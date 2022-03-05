@@ -23,23 +23,38 @@ class Binary_Tree_Node:
         return self._parent
 
     @property
-    def ancestors(self):
-        '''
-        ancestors from the direct parent to the root node
-        '''
-        p = self._parent
-
-        while p is not None:
-            yield p
-            p = p.parent
-
-    @property
     def left_child(self):
         return self._l_child
 
     @property
     def right_child(self):
         return self._r_child
+
+    @property
+    def ancestors(self):
+        p = self._parent
+        while p is not None:
+            yield p
+            p = p.parent
+
+    @property
+    def descendants(self):
+        '''
+        Returns descendants in level-order traversal root, left, right, ...
+        '''
+        nodes_to_search = deque()
+        nodes_to_search.append(self)
+
+        while nodes_to_search:
+            node = nodes_to_search.popleft()
+
+            if node._l_child is not None:
+                nodes_to_search.append(node._l_child)
+                yield node._l_child
+
+            if node._r_child is not None:
+                nodes_to_search.append(node._r_child)
+                yield node._r_child
 
 
 
@@ -57,40 +72,19 @@ class Binary_Tree:
         self._nodes = list()
 
     @property
-    def leaves(self):
-        yield from self._leaves
+    def nodes(self):
+        return self._nodes
 
     @property
     def root(self):
         return self._root
 
+    @property
+    def leaves(self):
+        yield from self._leaves
+
     def __contains__(self, node):
         return node in self._nodes
-
-    @property
-    def nodes(self):
-        return self._nodes
-
-    def topological_ordering(self):
-        '''
-        Perform a level-order traversal (root, left, right ...)
-        '''
-        if self._root is None:
-            return
-
-        queue = deque(maxlen=len(self._nodes))
-        queue.append(self._root)
-
-        while queue:
-            node = queue.popleft()
-            yield node
-
-            if node._l_child is not None:
-                queue.append(node._l_child)
-
-            if node._r_child is not None:
-                queue.append(node._r_child)
-
 
     def add_node(self, node, parent=None, left_side=True):
         '''
@@ -99,24 +93,24 @@ class Binary_Tree:
         :param left_side bool: True if node is on left side of parent
         :param parent Node: parent of node, None for root node
         '''
-        assert node not in self._nodes, "node already in tree"
+        assert node not in self._nodes, 'node already in tree'
 
         if self._root is None:
-            assert parent is None, "root node shall not have parent"
+            assert parent is None, 'root node shall not have parent'
             self._root = node
 
         else:
-            assert parent is not None, "missing parent"
-            assert parent in self._nodes, "unrecognized parent"
+            assert parent is not None, 'missing parent'
+            assert parent in self._nodes, 'unrecognized parent'
 
             if parent in self._leaves:
                 self._leaves.remove(parent)
 
             if left_side:
-                assert parent._l_child is None, "existing l_child"
+                assert parent._l_child is None, 'existing l_child'
                 parent._l_child = node
             else:
-                assert parent._r_child is None, "existing r_child"
+                assert parent._r_child is None, 'existing r_child'
                 parent._r_child = node
 
         self._nodes.append(node)
@@ -124,3 +118,10 @@ class Binary_Tree:
         node._l_child = None
         node._r_child = None
         node._parent = parent
+
+
+    def topological_ordering(self):
+        if self._root is not None:
+            yield self._root
+            yield from self._root.descendants
+
