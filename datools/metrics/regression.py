@@ -52,7 +52,7 @@ def mean_absolute_percent_error(pred, actual):
     actual = numpy.asarray(actual)
 
     error = actual - pred
-    error_percent = error / pred * 100
+    error_percent = error / actual * 100
 
     return abs(error_percent).mean()
 
@@ -84,7 +84,7 @@ def coefficient_of_determination(pred, actual):
 
     error = actual - pred
 
-    residual_sum_of_square = numpy.squre(error).sum()
+    residual_sum_of_square = numpy.square(error).sum()
     total_sum_of_square = numpy.square(actual).sum()
 
     return 1 - residual_sum_of_square / total_sum_of_square
