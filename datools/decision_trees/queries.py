@@ -25,6 +25,15 @@ class Abstract_Threshold_Query(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
+    def describe(self, feature_names=None):
+        feature_name = (
+            f'column[{self.feature_index}]' if feature_names is None else
+            feature_names[self.feature_index]
+        )
+
+        return f'{{{feature_name} <= {self.threshold}}}'
+
+
 
 class Crisp_Threshold_Query(Abstract_Threshold_Query):
     __slots__ = ()
