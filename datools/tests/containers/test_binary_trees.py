@@ -6,6 +6,7 @@ Unit tests for trees
 import unittest
 from datools.containers.binary_trees import Binary_Tree, Binary_Tree_Node
 
+
 class Test_Tree(unittest.TestCase):
 
     def test_basic(self):
@@ -50,7 +51,7 @@ class Test_Tree(unittest.TestCase):
         self.assertEqual(l_grandchild.left_child, None)
         self.assertEqual(l_grandchild.right_child, None)
 
-    def test_parent(self):
+    def test_ancestors_descendants(self):
         tree = Binary_Tree()
 
         root = Binary_Tree_Node()
@@ -68,12 +69,16 @@ class Test_Tree(unittest.TestCase):
         self.assertEqual(list(r_child.ancestors), [root])
         self.assertEqual(list(l_grandchild.ancestors), [l_child, root])
 
-    def test_traverse_empty(self):
-        '''
-        Traversals of empty tree should not raise any exceptions
-        '''
-        tree = Binary_Tree()
+        self.assertEqual(list(root.descendants),
+                         [l_child, r_child, l_grandchild])
+        self.assertEqual(list(l_child.descendants), [l_grandchild])
+        self.assertEqual(list(r_child.descendants), [])
+        self.assertEqual(list(l_grandchild.descendants), [])
 
+
+    def test_traverse_empty(self):
+        # Traversals of empty tree should not raise any exceptions
+        tree = Binary_Tree()
         for _ in tree.topological_ordering():
             pass
 
