@@ -10,13 +10,15 @@ class Binary_Tree_Node:
         '__dict__',
         '_parent',
         '_l_child',
-        '_r_child'
+        '_r_child',
+        '_is_on_left',
     )
 
     def __init__(self):
         self._parent = None
         self._l_child = None
         self._r_child = None
+        self._is_on_left = None
 
     @property
     def parent(self):
@@ -36,6 +38,14 @@ class Binary_Tree_Node:
         while p is not None:
             yield p
             p = p.parent
+
+    @property
+    def is_on_left(self):
+        return self._is_on_left
+
+    @property
+    def is_leaf(self):
+        return (self._l_child is None) and (self._r_child is None)
 
     @property
     def descendants(self):
@@ -109,9 +119,11 @@ class Binary_Tree:
             if left_side:
                 assert parent._l_child is None, 'existing l_child'
                 parent._l_child = node
+                node._is_on_left = True
             else:
                 assert parent._r_child is None, 'existing r_child'
                 parent._r_child = node
+                node._is_on_left = False
 
         self._nodes.append(node)
         self._leaves.append(node)

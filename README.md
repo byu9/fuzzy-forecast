@@ -16,5 +16,5 @@ Test cases are automatically tested against subsequent changes to the module
 Run all unit tests with the following command in the project folder
 
 ```
-python3 -m unittest discover datools/tests
+python3 -m unittest discover .
 ```

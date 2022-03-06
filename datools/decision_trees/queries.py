@@ -5,7 +5,7 @@ Query classes
 
 from abc import ABCMeta, abstractmethod
 from functools import singledispatch
-from ..math.nonlinearity import Sigmoid
+from ..gradients.nonlinearity import Sigmoid
 
 
 __all__ = [
@@ -23,6 +23,15 @@ class Abstract_Threshold_Query(metaclass=ABCMeta):
     @abstractmethod
     def degree_of_truth(self):
         raise NotImplementedError()
+
+
+    def describe(self, feature_names=None):
+        feature_name = (
+            f'column[{self.feature_index}]' if feature_names is None else
+            feature_names[self.feature_index]
+        )
+
+        return f'{{{feature_name} <= {self.threshold}}}'
 
 
 
@@ -47,7 +56,7 @@ class Fuzzy_Threshold_Query(Abstract_Threshold_Query):
     )
 
     def __init__(self, feature_index, threshold, gain, boundary_func=Sigmoid()):
-        assert gain > 0
+        assert gain >= 0
 
         self.feature_index = feature_index
         self.threshold = threshold
