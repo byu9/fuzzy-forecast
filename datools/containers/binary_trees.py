@@ -44,6 +44,10 @@ class Binary_Tree_Node:
         return self._is_on_left
 
     @property
+    def is_leaf(self):
+        return (self._l_child is None) and (self._r_child is None)
+
+    @property
     def descendants(self):
         '''
         Returns descendants in level-order traversal root, left, right, ...
