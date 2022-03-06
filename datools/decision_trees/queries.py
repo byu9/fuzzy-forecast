@@ -56,7 +56,7 @@ class Fuzzy_Threshold_Query(Abstract_Threshold_Query):
     )
 
     def __init__(self, feature_index, threshold, gain, boundary_func=Sigmoid()):
-        assert gain > 0
+        assert gain >= 0
 
         self.feature_index = feature_index
         self.threshold = threshold
