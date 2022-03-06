@@ -3,10 +3,9 @@ Query classes
 '''
 
 
-import numpy
 from abc import ABCMeta, abstractmethod
 from functools import singledispatch
-from ..fuzzy_systems.memberships import Sigmoid
+from ..math.nonlinearity import Sigmoid
 
 
 __all__ = [
@@ -15,110 +14,67 @@ __all__ = [
     'Fuzzy_Threshold_Query'
 ]
 
-
-
-class Abstract_Binary_Query(metaclass=ABCMeta):
+class Abstract_Threshold_Query(metaclass=ABCMeta):
     __slots__ = (
-        'col_index',
-        'feature_name',
+        'feature_index',
+        'threshold'
     )
 
-    def __init__(self, col_index, feature_name=None):
-        self.col_index = col_index
-        self.feature_name = (
-            feature_name if feature_name is not None else
-            f'column[{col_index}]'
-        )
-
     @abstractmethod
-    def degree_of_truth(self, features):
+    def degree_of_truth(self):
         raise NotImplementedError()
 
 
-class Crisp_Threshold_Query(Abstract_Binary_Query):
-    __slots__ = (
-        'threshold',
-        '_operator_func',
-        'operator'
-    )
 
-    def __init__(self, col_index, threshold=0.0, feature_name=None,
-                 operator='>='):
+class Crisp_Threshold_Query(Abstract_Threshold_Query):
+    __slots__ = ()
 
-        import operator as operatorlib
-
-        super().__init__(col_index, feature_name)
-
+    def __init__(self, feature_index, threshold):
+        self.feature_index = feature_index
         self.threshold = threshold
-        self.operator = operator
-        self._operator_func = {
-            '>' : operatorlib.gt,
-            '>=': operatorlib.ge,
-            '<' : operatorlib.lt,
-            '<=': operatorlib.le,
-        }[operator]
 
     def degree_of_truth(self, features):
-        features = numpy.asarray(features)
-        assert features.ndim == 2
-
-        values_under_query = features[:, self.col_index]
-
-        return self._operator_func(values_under_query, self.threshold)
-
-    def __repr__(self):
-        feature = self.feature_name
-        threshold = self.threshold
-        operator = self.operator
-        return f'{{Is {feature} {operator} {threshold}?}}'
+        values_under_query = features[:, self.feature_index]
+        return values_under_query <= self.threshold
 
 
-
-class Fuzzy_Threshold_Query(Abstract_Binary_Query):
+class Fuzzy_Threshold_Query(Abstract_Threshold_Query):
     __slots__ = (
-        'threshold',
         'gain',
-        'membership_func',
-        'operator',
-        '_sign',
+        'boundary_func',
+        'activation',
+        'feature_value',
     )
 
-    def __init__(self, col_index, feature_name=None, threshold=0.0,
-                 membership_func=Sigmoid(), gain=1.0, operator='>='):
-
-        super().__init__(col_index, feature_name)
+    def __init__(self, feature_index, threshold, gain, boundary_func=Sigmoid()):
         assert gain > 0
+
+        self.feature_index = feature_index
         self.threshold = threshold
         self.gain = gain
-        self.membership_func = membership_func
-        self.operator = operator
-        self._sign = {
-            '>=' :  1,
-            '>'  :  1,
-            '<=' : -1,
-            '<'  : -1
-        }[operator]
+        self.boundary_func = boundary_func
 
     def degree_of_truth(self, features):
-        features = numpy.asarray(features)
-        assert features.ndim == 2
+        self.feature_value = features[:, self.feature_index]
+        self.activation = -self.gain * (self.feature_value - self.threshold)
+        return self.boundary_func.primitive(self.activation)
 
-        values_under_query = features[:, self.col_index]
+    def tune(self, output_gradients):
+        output_gradients = output_gradients.reshape(-1)
 
-        activation = self._sign * self.gain * (
-            values_under_query - self.threshold)
-
-        return self.membership_func.primitive(activation)
-
-    def __repr__(self):
-        feature = self.feature_name
-        threshold = self.threshold
-        gain = self.gain
-        operator = self.operator
-        return (
-            f'{{Is {feature} roughly {operator} {threshold} '
-            f'with gain {gain}?}}'
+        # uses the chain rule
+        activation_gradient = (
+            output_gradients * self.boundary_func.derivative(self.activation)
         )
+
+        gain_gradient = (
+            activation_gradient * (self.threshold - self.feature_value)
+        ).sum()
+
+        threshold_gradient = (activation_gradient * self.gain).sum()
+
+        self.gain += gain_gradient
+        self.threshold += threshold_gradient
 
 
 @singledispatch
@@ -128,11 +84,8 @@ def fuzzify(crisp, *args, **kwargs):
 
 @fuzzify.register
 def _(crisp : Crisp_Threshold_Query, *args, **kwargs):
-
-    kwargs['feature_name'] = crisp.feature_name
+    kwargs['feature_index'] = crisp.feature_index
     kwargs['threshold'] = crisp.threshold
-    kwargs['col_index'] = crisp.col_index
-    kwargs['operator'] = crisp.operator
 
     fuzzified = Fuzzy_Threshold_Query(*args, **kwargs)
 
