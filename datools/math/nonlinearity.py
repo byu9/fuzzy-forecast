@@ -1,13 +1,13 @@
 '''
-Membership function classes
+Nonlinear functions
 '''
-
-
-import numpy
 
 __all__ = [
     'Sigmoid',
 ]
+
+
+import numpy
 
 
 class Sigmoid:

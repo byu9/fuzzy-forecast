@@ -1,11 +1,11 @@
 '''
-Unit tests for sigmoid
+Unit tests for nonlinear functions
 '''
 
 
 import unittest
 
-from datools.fuzzy_systems.memberships import Sigmoid
+from datools.math.nonlinearity import Sigmoid
 
 
 class Test_Sigmoid(unittest.TestCase):
