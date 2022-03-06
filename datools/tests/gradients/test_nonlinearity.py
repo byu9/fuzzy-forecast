@@ -5,7 +5,7 @@ Unit tests for nonlinear functions
 
 import unittest
 
-from datools.math.nonlinearity import Sigmoid
+from datools.gradients.nonlinearity import Sigmoid
 
 
 class Test_Sigmoid(unittest.TestCase):

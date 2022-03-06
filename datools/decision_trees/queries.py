@@ -5,7 +5,7 @@ Query classes
 
 from abc import ABCMeta, abstractmethod
 from functools import singledispatch
-from ..math.nonlinearity import Sigmoid
+from ..gradients.nonlinearity import Sigmoid
 
 
 __all__ = [
