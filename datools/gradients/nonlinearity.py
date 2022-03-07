@@ -20,3 +20,13 @@ class Sigmoid:
     def derivative(self, arr):
         primitive = Sigmoid.primitive(arr)
         return primitive * (1 - primitive)
+
+
+class Lorentzian:
+    def primitive(self, arr):
+        arr = numpy.asarray(arr)
+        return 1 / (1 + numpy.square(arr))
+
+    def derivative(self, arr):
+        arr = numpy.asarray(arr)
+        return -2 * numpy.sqrt(1 + numpy.square(arr)) * arr
