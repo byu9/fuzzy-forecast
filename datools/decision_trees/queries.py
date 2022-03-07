@@ -21,7 +21,7 @@ class Abstract_Threshold_Query(metaclass=ABCMeta):
     )
 
     @abstractmethod
-    def degree_of_truth(self):
+    def degree_of_truth(self, features):
         raise NotImplementedError()
 
 
@@ -51,39 +51,33 @@ class Fuzzy_Threshold_Query(Abstract_Threshold_Query):
     __slots__ = (
         'gain',
         'boundary_func',
-        'activation',
-        'feature_value',
     )
 
     def __init__(self, feature_index, threshold, gain, boundary_func=Sigmoid()):
-        assert gain >= 0
-
         self.feature_index = feature_index
         self.threshold = threshold
         self.gain = gain
         self.boundary_func = boundary_func
 
     def degree_of_truth(self, features):
-        self.feature_value = features[:, self.feature_index]
-        self.activation = -self.gain * (self.feature_value - self.threshold)
-        return self.boundary_func.primitive(self.activation)
+        a = -self.gain * (features[:, self.feature_index] - self.threshold)
+        return self.boundary_func.primitive(a)
 
-    def tune(self, output_gradients):
-        output_gradients = output_gradients.reshape(-1)
+    def tune(self, features, dl_dmu, learning_rate):
+        a = -self.gain * (features[:, self.feature_index] - self.threshold)
 
-        # uses the chain rule
-        activation_gradient = (
-            output_gradients * self.boundary_func.derivative(self.activation)
-        )
+        dmu_da = self.boundary_func.derivative(a)
+        dl_da = dl_dmu * dmu_da
 
-        gain_gradient = (
-            activation_gradient * (self.threshold - self.feature_value)
-        ).sum()
+        da_dg = self.threshold - features[:, self.feature_index]
+        da_dt = self.gain
 
-        threshold_gradient = (activation_gradient * self.gain).sum()
+        dl_dg = dl_da * da_dg
+        dl_dt = dl_da * da_dt
 
-        self.gain += gain_gradient
-        self.threshold += threshold_gradient
+        self.gain -= learning_rate * dl_dg.sum()
+        self.threshold -= learning_rate * dl_dt.sum()
+
 
 
 @singledispatch

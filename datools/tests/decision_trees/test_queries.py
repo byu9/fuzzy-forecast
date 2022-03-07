@@ -55,11 +55,11 @@ class Test_Fuzzy_Threshold_Query(unittest.TestCase):
                                       feature_index=0,
                                       gain=0.3)
 
-        query.degree_of_truth(numpy.array([[0.7], [0.6]]))
-        query.tune(numpy.array([[1, 2]]))
+        query.tune(numpy.array([[0.7], [0.6]]), numpy.array([[1, 2]]),
+                   learning_rate=1)
 
-        self.assertAlmostEqual(query.gain, 0.275, places=4)
-        self.assertAlmostEqual(query.threshold, 0.825, places=4)
+        self.assertAlmostEqual(query.gain, 0.325, places=4)
+        self.assertAlmostEqual(query.threshold, 0.375, places=4)
 
 
 class Test_Fuzzify(unittest.TestCase):

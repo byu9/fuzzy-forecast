@@ -16,9 +16,8 @@ class Sigmoid:
         arr = numpy.clip(arr, -500, 500)
         return 1 / (1 + numpy.exp(-arr))
 
-    @staticmethod
     def derivative(self, arr):
-        primitive = Sigmoid.primitive(arr)
+        primitive = self.primitive(arr)
         return primitive * (1 - primitive)
 
 
