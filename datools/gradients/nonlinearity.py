@@ -11,12 +11,12 @@ import numpy
 
 
 class Sigmoid:
-    @staticmethod
-    def primitive(arr):
+    def primitive(self, arr):
         arr = numpy.asarray(arr)
+        arr = numpy.clip(arr, -500, 500)
         return 1 / (1 + numpy.exp(-arr))
 
     @staticmethod
-    def derivative(arr):
+    def derivative(self, arr):
         primitive = Sigmoid.primitive(arr)
         return primitive * (1 - primitive)
