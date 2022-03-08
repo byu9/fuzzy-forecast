@@ -18,16 +18,16 @@ import numpy
 
 
 def mean_absolute_error(pred, actual):
-    pred = numpy.asarray(pred)
-    actual = numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
 
     error = actual - pred
 
     return abs(error).mean()
 
 def mean_squared_error(pred, actual):
-    pred = numpy.asarray(pred)
-    actual = numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
 
     error = actual - pred
 
@@ -39,8 +39,8 @@ def root_mean_squared_error(pred, actual):
 
 
 def sum_of_squared_error(pred, actual):
-    pred = numpy.asarray(pred)
-    actual =  numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual =  numpy.asarray(actual).reshape(-1)
 
     error = actual - pred
 
@@ -48,8 +48,8 @@ def sum_of_squared_error(pred, actual):
 
 
 def mean_absolute_percent_error(pred, actual):
-    pred = numpy.asarray(pred)
-    actual = numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
 
     error = actual - pred
     error_percent = error / actual * 100
@@ -58,8 +58,8 @@ def mean_absolute_percent_error(pred, actual):
 
 
 def mean_absolute_percent_full_scale_error(pred, actual, fullscale=None):
-    pred = numpy.asarray(pred)
-    actual = numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
 
     if fullscale is None:
         fullscale = abs(actual).max()
@@ -71,16 +71,16 @@ def mean_absolute_percent_full_scale_error(pred, actual, fullscale=None):
 
 
 def mean_bias_error(pred, actual):
-    pred = numpy.asarray(pred)
-    actual = numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
 
     error = actual - pred
 
     return error.mean()
 
 def coefficient_of_determination(pred, actual):
-    pred = numpy.asarray(pred)
-    actual = numpy.asarray(actual)
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
 
     error = actual - pred
 
