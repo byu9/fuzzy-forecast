@@ -10,18 +10,6 @@ from ..containers.binary_trees import Binary_Tree, Binary_Tree_Node
 from ..metrics.regression import sum_of_squared_error
 
 
-class Decision_Tree_Node(Binary_Tree_Node):
-    __slots__ = (
-        'feature_col',
-        'threshold',
-        'impurity',
-        'features',
-        'target',
-        'ybar',
-        'r',
-    )
-
-
 class Decision_Tree_Regressor:
 
     __slots__ = (
@@ -58,8 +46,8 @@ class Decision_Tree_Regressor:
     def _find_best_split(self, features, target):
         best_split = SimpleNamespace()
         best_split.impurity = numpy.inf
-        best_split.left = Decision_Tree_Node()
-        best_split.right = Decision_Tree_Node()
+        best_split.left = Binary_Tree_Node()
+        best_split.right = Binary_Tree_Node()
 
         feature_cols = range(features.shape[1])
 
@@ -100,7 +88,7 @@ class Decision_Tree_Regressor:
     def _build_tree(self, features, target):
         self._tree = Binary_Tree()
 
-        root_node = Decision_Tree_Node()
+        root_node = Binary_Tree_Node()
 
         root_node.features = features
         root_node.target = target
