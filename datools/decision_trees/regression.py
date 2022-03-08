@@ -235,7 +235,7 @@ class Decision_Tree_Regressor:
         ])
         return predictions_per_leaf.sum(axis=0).reshape(-1)
 
-    def tune(self, features, target, learning_rate=0.01, n_iter=900):
+    def tune(self, features, target, learning_rate=0.1, n_iter=100):
         '''
         Fuzzify a crisp tree and tune the fuzzy tree
         :param features ndarray: array of shape (n_samples, n_features, )
