@@ -63,7 +63,8 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 )
                 node.dl_dr = dl_drp
 
-    def fit(self, features, target, learning_rate, n_iter=100):
+    def fit(self, features, target, ybar_optimizer, gain_optimizer,
+            threshold_optimizer, n_iter=100):
         '''
         Fit features and output, resulting in a crisp tree
         :param features ndarray: array of shape (n_samples, n_features, )
@@ -91,11 +92,11 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
 
             for node in self._tree.nodes:
                 if node.is_leaf:
-                    node.ybar -= learning_rate * node.dl_dybar.mean()
+                    node.ybar += ybar_optimizer(node.dl_dybar.mean())
 
                 else:
-                    node.gain -= learning_rate * node.dl_dg.mean()
-                    node.threshold -= learning_rate * node.dl_dt.mean()
+                    node.gain += gain_optimizer(node.dl_dg.mean())
+                    node.threshold += threshold_optimizer(node.dl_dt.mean())
 
             print(f'loss={mean_squared_error(yhat, target)}')
 
