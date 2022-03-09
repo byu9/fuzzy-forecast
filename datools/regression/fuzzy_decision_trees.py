@@ -131,6 +131,6 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 avg=f'{losses[epoch, :].mean():>20.6f}'
             )
 
-        return losses.reshape(-1)
+        return losses
 
 

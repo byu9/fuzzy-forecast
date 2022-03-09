@@ -24,7 +24,7 @@ model0 = Decision_Tree_Regressor(min_impurity_drop=0.1, min_count=50)
 model = Fuzzy_Decision_Tree_Regressor(min_impurity_drop=0.1, min_count=50)
 
 model0.fit(train_x, train_y)
-model.fit(train_x, train_y, n_iter=5000,
+model.fit(train_x, train_y, batch_size=16, epochs=1000,
           ybar_optimizer=Adam(),
           gain_optimizer=Adam(),
           threshold_optimizer=Adam())

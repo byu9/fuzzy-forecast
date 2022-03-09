@@ -26,47 +26,49 @@ def prepare_dataset():
 (x_train, y_train, x_test, y_test) = prepare_dataset()
 
 
-from datools.decision_trees.regression import Decision_Tree_Regressor
-from diskcache import Cache
-from datools.metrics.regression import mean_absolute_percent_error
+from datools.regression.fuzzy_decision_trees import Fuzzy_Decision_Tree_Regressor
+from datools.regression.decision_trees import Decision_Tree_Regressor
+from datools.metrics.regression import (
+    mean_absolute_percent_error,
+    mean_absolute_percent_full_scale_error)
+from datools.gradients.optimizers import Constant_Learning_Rate, RMSProp, Adam
 
-cache = Cache('cache')
-cache.evict('fit')
-@cache.memoize(tag='fit')
-def fit_model():
-    model = Decision_Tree_Regressor(min_impurity_drop=500, min_count=300)
-    model.fit(x_train, y_train)
-    return model
+model0 = Decision_Tree_Regressor(min_impurity_drop=0, min_count=10)
+model = Fuzzy_Decision_Tree_Regressor(min_impurity_drop=0, min_count=10)
+model0.fit(x_train, y_train)
+loss = model.fit(x_train, y_train, batch_size=256, epochs=30,
+          ybar_optimizer=Adam(),
+          gain_optimizer=Adam(),
+          threshold_optimizer=Adam())
 
-model = fit_model()
 yhat_train = model.predict(x_train)
-#model.print_tree(feature_names=x_train.columns)
 yhat_test = model.predict(x_test)
+yhat0_train = model0.predict(x_train)
+yhat0_test = model0.predict(x_test)
 
-mape = mean_absolute_percent_error(yhat_test, y_test)
+mape0 = mean_absolute_percent_full_scale_error(yhat0_test, y_test)
+mape = mean_absolute_percent_full_scale_error(yhat_test, y_test)
 
 from pandas import DataFrame
 from matplotlib import pyplot as plt
 
-df = DataFrame({'y_test': y_test, 'yhat_test': yhat_test})
+df = DataFrame({'y_test': y_test, 'fuzzy': yhat_test,
+                'crisp': yhat0_test})
 
-
-model.tune(x_train, y_train, learning_rate=0.0001, n_iter=2)
-
-yhat_test_tune = model.predict(x_test)
-
-df['tuned_yhat_test'] = yhat_test_tune
-
-mape_tune = mean_absolute_percent_error(yhat_test_tune, y_test)
-
-print(f'mape={mape}')
-print(f'mape_tune={mape_tune}')
-
+print(f'test mape crisp={mape0:.10f}%')
+print(f'test mape fuzzy={mape:.10f}%')
+reduction = (mape0 - mape) / mape0 * 100
+print(f'reduction={reduction:.10f}%')
 #model.print_tree(feature_names=x_train.columns)
 
 df.plot()
 plt.show()
-
+import numpy
+DataFrame({'mean': loss.mean(axis=1),
+           '90%': numpy.quantile(loss, 0.9, axis=1),
+           '10%': numpy.quantile(loss, 0.1, axis=1)
+           }).plot(title='Loss')
+plt.show()
 
 
 #
