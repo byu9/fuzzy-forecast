@@ -4,6 +4,7 @@ Fuzzy decision tree for regression
 
 
 import numpy
+from tqdm import tqdm
 from .decision_trees import Decision_Tree_Regressor
 from ..gradients.nonlinearity import Sigmoid
 from ..metrics.regression import mean_squared_error
@@ -64,7 +65,7 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 node.dl_dr = dl_drp
 
     def fit(self, features, target, ybar_optimizer, gain_optimizer,
-            threshold_optimizer, n_iter=100):
+            threshold_optimizer, batch_size=16, epochs=20):
         '''
         Fit features and output, resulting in a crisp tree
         :param features ndarray: array of shape (n_samples, n_features, )
@@ -85,19 +86,51 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 ) - 1
                 node.gain = f / (2 * min(a.max(), (-a).max()))
 
-        for _ in range(n_iter):
-            yhat = self.predict(features)
-            dl_dyhat = -2 * (target - yhat)
-            self._backward_prop(dl_dyhat)
+        n_samples = features.shape[0]
 
-            for node in self._tree.nodes:
-                if node.is_leaf:
-                    node.ybar += ybar_optimizer(node.dl_dybar.mean())
+        batch_ranges = range(batch_size, n_samples, batch_size)
+        n_batches = len(batch_ranges)
+        losses = numpy.empty((epochs, n_batches))
+        random = numpy.random.default_rng()
 
-                else:
-                    node.gain += gain_optimizer(node.dl_dg.mean())
-                    node.threshold += threshold_optimizer(node.dl_dt.mean())
+        epoch_progress = tqdm(range(epochs), desc='Epoch', leave=False)
+        for epoch in epoch_progress:
+            shuffle = random.permutation(range(n_samples))
 
-            print(f'loss={mean_squared_error(yhat, target)}')
+            features_split = numpy.array_split(
+                features[shuffle, :], batch_ranges)
+
+            target_split = numpy.array_split(target[shuffle], batch_ranges)
+
+            batch_progress = tqdm(range(n_batches), desc='Batch', leave=False)
+
+            for batch in batch_progress:
+                target_split_hat = self.predict(features_split[batch])
+
+                loss = mean_squared_error(
+                    target_split_hat, target_split[batch])
+
+                losses[epoch, batch] = loss
+
+                batch_progress.set_postfix(loss=f'{loss:20.6f}')
+
+                dl_dyhat = -2 * (target_split[batch] - target_split_hat)
+                self._backward_prop(dl_dyhat)
+
+                for node in self._tree.nodes:
+                    if node.is_leaf:
+                        node.ybar += ybar_optimizer(node.dl_dybar.mean())
+
+                    else:
+                        node.gain += gain_optimizer(node.dl_dg.mean())
+                        node.threshold += threshold_optimizer(node.dl_dt.mean())
+
+            epoch_progress.set_postfix(
+                min=f'{losses[epoch, :].min():>20.6f}',
+                max=f'{losses[epoch, :].max():>20.6f}',
+                avg=f'{losses[epoch, :].mean():>20.6f}'
+            )
+
+        return losses.reshape(-1)
 
 
