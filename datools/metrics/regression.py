@@ -2,17 +2,6 @@
 Regression Metrics
 '''
 
-__all__ = (
-    'mean_absolute_error',
-    'mean_squared_error',
-    'root_mean_squared_error',
-    'sum_of_squared_error',
-    'mean_absolute_percent_error',
-    'mean_absolute_percent_full_scale_error',
-    'mean_bias_error',
-    'coefficient_of_determination',
-)
-
 
 import numpy
 
@@ -69,6 +58,12 @@ def mean_absolute_percent_full_scale_error(pred, actual, fullscale=None):
 
     return abs(error_percent).mean()
 
+
+def weighted_mean_absolute_percent_error(pred, actual):
+    pred = numpy.asarray(pred).reshape(-1)
+    actual = numpy.asarray(actual).reshape(-1)
+
+    return abs(actual - pred).sum() / abs(actual).sum()
 
 def mean_bias_error(pred, actual):
     pred = numpy.asarray(pred).reshape(-1)
