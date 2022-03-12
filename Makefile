@@ -9,7 +9,7 @@ $(output_dir)/%.result: data/%.csv data/%.ini
 	./fingers_crossed.py \
 		--csv data/$(*).csv \
 		--config data/$(*).ini \
-		--output $(output_dir)/$(*)
+		--output $(output_dir)/$(*) 2> $(output_dir)/$(*)/log
 
 $(output_dir):
 	mkdir -p $(output_dir)
