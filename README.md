@@ -18,3 +18,15 @@ Run all unit tests with the following command in the project folder
 ```
 python3 -m unittest discover .
 ```
+
+## Fitting Models
+
+1. Change the parameters in the `.ini` config files
+1. Run the following command. Dispatch jobs to fill all processor cores.
+
+```
+make -j$(nproc)
+```
+
+All models with modified data or config files will be re-evaluated. The output
+is in folder `output`.
