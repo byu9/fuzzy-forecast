@@ -13,8 +13,9 @@ from ..metrics.regression import mean_squared_error
 class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._forward_prop_func = super()._forward_prop
 
-    def _forward_prop(self, features):
+    def _forward_prop_fuzzy(self, features):
         sigmoid = Sigmoid()
         self._tree.root.r = 1
         for node in self._tree.topological_ordering():
@@ -25,6 +26,9 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 node.mu = sigmoid.primitive(node.a)
                 node.left_child.r = node.mu * node.r
                 node.right_child.r = (1 - node.mu) * node.r
+
+    def _forward_prop(self, features):
+        self._forward_prop_func(features)
 
     def _backward_prop(self, dl_dyhat):
         sigmoid = Sigmoid()
@@ -64,14 +68,13 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 )
                 node.dl_dr = dl_drp
 
-    def fit(self, features, target, ybar_optimizer, gain_optimizer,
+    def tune(self, features, target, ybar_optimizer, gain_optimizer,
             threshold_optimizer, batch_size=16, epochs=20):
         '''
         Fit features and output, resulting in a crisp tree
         :param features ndarray: array of shape (n_samples, n_features, )
         :param output ndarray: array of shape (n_samples,)
         '''
-        super().fit(features, target)
         features = numpy.atleast_2d(features)
         target = numpy.asarray(target).reshape(-1)
 
@@ -86,6 +89,7 @@ class Fuzzy_Decision_Tree_Regressor(Decision_Tree_Regressor):
                 ) - 1
                 node.gain = f / (2 * min(a.max(), (-a).max()))
 
+        self._forward_prop_func = self._forward_prop_fuzzy
         n_samples = features.shape[0]
 
         batch_ranges = range(batch_size, n_samples, batch_size)
