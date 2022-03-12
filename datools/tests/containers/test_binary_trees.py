@@ -60,6 +60,11 @@ class Test_Tree(unittest.TestCase):
         self.assertTrue(r_child.is_leaf)
         self.assertTrue(l_grandchild.is_leaf)
 
+        self.assertTrue(root.is_root)
+        self.assertFalse(l_child.is_root)
+        self.assertFalse(r_child.is_root)
+        self.assertFalse(l_grandchild.is_root)
+
     def test_ancestors_descendants(self):
         tree = Binary_Tree()
 

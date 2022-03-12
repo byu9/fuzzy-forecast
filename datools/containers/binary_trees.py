@@ -48,6 +48,10 @@ class Binary_Tree_Node:
         return (self._l_child is None) and (self._r_child is None)
 
     @property
+    def is_root(self):
+        return self._parent is None
+
+    @property
     def descendants(self):
         '''
         Returns descendants in level-order traversal root, left, right, ...
