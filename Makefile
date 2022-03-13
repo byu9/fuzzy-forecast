@@ -10,7 +10,7 @@ $(output_dir)/%/result: data/%.csv data/%.ini
 		--csv data/$(*).csv \
 		--config data/$(*).ini \
 		--output $(output_dir)/$(*) 2> $(output_dir)/$(*)/log
-	@echo finished $(@)
+	cat $(output_dir)/$(*)/result
 
 $(output_dir):
 	mkdir -p $(output_dir)
@@ -18,7 +18,6 @@ $(output_dir):
 
 .PHONY: all
 all: $(result_files)
-	echo $(result_files)
 
 .PHONY: clean
 clean:
