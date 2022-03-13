@@ -34,9 +34,8 @@ with open(args.config) as config_file:
     config.read_file(config_file)
 
 target_col = config['data']['target']
-split_at = int(config['data']['train_test_split'])
 min_count = int(config['architecture']['min_count'])
-min_impurity_drop = int(config['architecture']['min_impurity_drop'])
+min_impurity_drop = float(config['architecture']['min_impurity_drop'])
 batch_size = int(config['tune']['batch_size'])
 epochs = int(config['tune']['epochs'])
 
@@ -47,8 +46,18 @@ for shift_name, shift_value in config['shift'].items():
 
 df.dropna(inplace=True)
 
-train = df[:split_at].reset_index(drop=True)
-test  = df[split_at:].reset_index(drop=True)
+train_start = (None if not 'start' in config['train'].keys()
+               else int(config['train']['start']))
+train_end = (None if not 'end' in config['train'].keys()
+               else int(config['train']['end']))
+
+test_start = (None if not 'start' in config['test'].keys()
+               else int(config['test']['start']))
+test_end = (None if not 'end' in config['test'].keys()
+               else int(config['test']['end']))
+
+train = df[slice(train_start, train_end)].reset_index(drop=True)
+test  = df[slice(test_start, test_end)].reset_index(drop=True)
 
 y_train = train[target_col]
 y_test  = test[target_col]
